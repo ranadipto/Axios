@@ -1,1 +1,255 @@
+<==============================================================================DataFetchApi==============================================================================>
+
+//Simple data fetched with api and display
+
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
+interface Data {
+  id: number;
+  title: string;
+  body: string;
+}
+
+const DataFetchApi: React.FC = () => {
+  const [data, setData] = useState<Data[]>([]);
+
+  useEffect(() => {
+    axios.get<Data[]>('https://jsonplaceholder.typicode.com/posts')
+      .then((response) => {
+        setData(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching data:', error);
+      });
+  }, []);
+
+  return (
+    <div>
+      <h1>Fetched Data</h1>
+      <ul>
+        {data.map((item) => (
+          <li key={item.id}>
+            <strong>{item.title}</strong>
+            <p>{item.body}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default DataFetchApi;
+
+
+
+
+<==============================================================================Pogo==============================================================================>
+//pokemon go api fetched and display
+
+
+import React, { useState } from 'react';
+import axios from 'axios';
+
+interface PokemonData {
+  name: string;
+  sprites: { front_default: string };
+  types: { type: { name: string } }[];
+  height: number;
+  weight: number;
+}
+
+const Pogo: React.FC = () => {
+  const [pokemonName, setPokemonName] = useState<string>('');
+  const [pokemonData, setPokemonData] = useState<PokemonData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchPokemonData = () => {
+    if (!pokemonName) {
+      setError('Please enter a Pokémon name.');
+      setPokemonData(null);
+      return;
+    }
+
+    axios
+      .get(`https://pokeapi.co/api/v2/pokemon/${pokemonName.toLowerCase()}`) // Corrected URL string
+      .then((response) => {
+        setPokemonData(response.data);
+        setError(null);
+      })
+      .catch(() => {
+        setError('Pokémon not found. Please try another name.');
+        setPokemonData(null);
+      });
+  };
+
+  return (
+    <div style={{ textAlign: 'center', padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+      <h1>Pokémon Search</h1>
+      <input
+        type="text"
+        placeholder="Enter Pokémon name"
+        value={pokemonName}
+        onChange={(e) => setPokemonName(e.target.value)}
+        style={{
+          padding: '10px',
+          fontSize: '16px',
+          width: '200px',
+          marginBottom: '10px',
+        }}
+      />
+      <button
+        onClick={fetchPokemonData}
+        style={{
+          padding: '10px 20px',
+          fontSize: '16px',
+          marginLeft: '10px',
+          cursor: 'pointer',
+        }}
+      >
+        Search
+      </button>
+
+      {error && <p style={{ color: 'red', marginTop: '20px' }}>{error}</p>}
+
+      {pokemonData && (
+        <div
+          style={{
+            marginTop: '20px',
+            padding: '20px',
+            border: '1px solid #ddd',
+            borderRadius: '10px',
+            display: 'inline-block',
+            textAlign: 'left',
+            backgroundColor: '#f9f9f9',
+          }}
+        >
+          <h2 style={{ textTransform: 'capitalize' }}>{pokemonData.name}</h2>
+          <img
+            src={pokemonData.sprites.front_default}
+            alt={pokemonData.name}
+            style={{ width: '150px', height: '150px' }}
+          />
+          <p><strong>Type:</strong> {pokemonData.types.map((type) => type.type.name).join(', ')}</p>
+          <p><strong>Height:</strong> {pokemonData.height} decimetres</p>
+          <p><strong>Weight:</strong> {pokemonData.weight} hectograms</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Pogo;
+
+
+
+
+
+
+<==============================================================================ApiTokenAxios==============================================================================>
+
+//Data stored to localstorage with api
+
+import React, { useState, useEffect } from 'react';
+
+interface UserData {
+  email: string;
+  token: string;
+}
+
+const ApiTokenAxios: React.FC = () => {
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [user, setUser] = useState<UserData | null>(null);
+
+  // Load user data from localStorage on component mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem('authUser');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser)); // Restore user data from localStorage
+    }
+  }, []);
+
+  const handleLogin = () => {
+    // Simulate successful login by generating a mock token
+    if (email && password) {
+      const mockToken = `mocked_token_${Math.random().toString(36).substring(2, 15)}`;
+      const userData: UserData = { email, token: mockToken };
+
+      setUser(userData); // Set user data in state
+      localStorage.setItem('authUser', JSON.stringify(userData)); // Save user data to localStorage
+      console.log('Login successful:', userData);
+    } else {
+      alert('Please enter both email and password!');
+    }
+  };
+
+  const handleLogout = () => {
+    setUser(null); // Clear user data from state
+    localStorage.removeItem('authUser'); // Remove user data from localStorage
+    console.log('Logged out successfully');
+  };
+
+  return (
+    <div style={{ textAlign: 'center', marginTop: '50px' }}>
+      <h1>Login</h1>
+      {!user ? (
+        <>
+          <div>
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={{ padding: '10px', margin: '10px', width: '300px' }}
+            />
+          </div>
+          <div>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{ padding: '10px', margin: '10px', width: '300px' }}
+            />
+          </div>
+          <button
+            onClick={handleLogin}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#007bff',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+            }}
+          >
+            Login
+          </button>
+        </>
+      ) : (
+        <div>
+          <h2>Welcome, {user.email}!</h2>
+          <p>Your token: <strong>{user.token}</strong></p>
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#dc3545',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              marginTop: '20px',
+            }}
+          >
+            Logout
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ApiTokenAxios;
 
