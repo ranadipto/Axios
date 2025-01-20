@@ -1,0 +1,122 @@
+//create your own api key https://openweathermap.org/ from this website create new account and generate api key
+
+
+
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+
+interface WeatherData {
+  main: {
+    temp: number;
+    humidity: number;
+    pressure: number;
+  };
+  weather: {
+    description: string;
+    icon: string;
+  }[];
+  wind: {
+    speed: number;
+  };
+  sys: {
+    sunrise: number;
+    sunset: number;
+  };
+}
+
+const WeatherApp: React.FC = () => {
+  const [city, setCity] = useState<string>("");
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [error, setError] = useState<string>("");
+
+  // Function to convert timestamp to human-readable time
+  const convertToTime = (timestamp: number) => {
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleTimeString();
+  };
+
+  useEffect(() => {
+    if (city === "") {
+      return;
+    }
+
+    const fetchWeather = () => {
+      axios
+        .get(`https://api.openweathermap.org/data/2.5/weather`, {
+          params: {
+            q: city,
+            appid: "YOUR_API_KEY", // Replace with your OpenWeatherMap API key
+            units: "metric",
+          },
+        })
+        .then((response) => {
+          setWeather(response.data);
+          setError("");
+        })
+        .catch((error) => {
+          setError("City not found or invalid API key");
+          setWeather(null);
+        });
+    };
+
+    fetchWeather();
+  }, [city]);
+
+  return (
+    <div className="container mt-5">
+      <div className="mb-3">
+        <label htmlFor="cityInput" className="form-label">
+          Enter City Name
+        </label>
+        <input
+          type="text"
+          id="cityInput"
+          className="form-control"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          placeholder="e.g., London"
+        />
+      </div>
+      <button className="btn btn-primary" onClick={() => setCity(city)}>
+        Search
+      </button>
+
+      {error && <p className="mt-3 text-danger">{error}</p>}
+
+      {weather && (
+        <div className="card mt-4" style={{ width: "18rem" }}>
+          <div className="card-body">
+            <h5 className="card-title">{city}</h5>
+            <p className="card-text">
+              <strong>Temperature:</strong> {weather.main.temp}°C
+            </p>
+            <p className="card-text">
+              <strong>Humidity:</strong> {weather.main.humidity}%
+            </p>
+            <p className="card-text">
+              <strong>Pressure:</strong> {weather.main.pressure} hPa
+            </p>
+            <p className="card-text">
+              <strong>Wind Speed:</strong> {weather.wind.speed} m/s
+            </p>
+            <p className="card-text">
+              <strong>Description:</strong> {weather.weather[0].description}
+            </p>
+            <img
+              src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}.png`}
+              alt={weather.weather[0].description}
+            />
+            <p className="card-text">
+              <strong>Sunrise:</strong> {convertToTime(weather.sys.sunrise)}
+            </p>
+            <p className="card-text">
+              <strong>Sunset:</strong> {convertToTime(weather.sys.sunset)}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default WeatherApp;
