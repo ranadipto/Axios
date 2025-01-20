@@ -1,0 +1,95 @@
+//pokemon go api fetched and display
+
+
+import React, { useState } from 'react';
+import axios from 'axios';
+
+interface PokemonData {
+  name: string;
+  sprites: { front_default: string };
+  types: { type: { name: string } }[];
+  height: number;
+  weight: number;
+}
+
+const Pogo: React.FC = () => {
+  const [pokemonName, setPokemonName] = useState<string>('');
+  const [pokemonData, setPokemonData] = useState<PokemonData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchPokemonData = () => {
+    if (!pokemonName) {
+      setError('Please enter a Pokémon name.');
+      setPokemonData(null);
+      return;
+    }
+
+    axios
+      .get(`https://pokeapi.co/api/v2/pokemon/${pokemonName.toLowerCase()}`) // Corrected URL string
+      .then((response) => {
+        setPokemonData(response.data);
+        setError(null);
+      })
+      .catch(() => {
+        setError('Pokémon not found. Please try another name.');
+        setPokemonData(null);
+      });
+  };
+
+  return (
+    <div style={{ textAlign: 'center', padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+      <h1>Pokémon Search</h1>
+      <input
+        type="text"
+        placeholder="Enter Pokémon name"
+        value={pokemonName}
+        onChange={(e) => setPokemonName(e.target.value)}
+        style={{
+          padding: '10px',
+          fontSize: '16px',
+          width: '200px',
+          marginBottom: '10px',
+        }}
+      />
+      <button
+        onClick={fetchPokemonData}
+        style={{
+          padding: '10px 20px',
+          fontSize: '16px',
+          marginLeft: '10px',
+          cursor: 'pointer',
+        }}
+      >
+        Search
+      </button>
+
+      {error && <p style={{ color: 'red', marginTop: '20px' }}>{error}</p>}
+
+      {pokemonData && (
+        <div
+          style={{
+            marginTop: '20px',
+            padding: '20px',
+            border: '1px solid #ddd',
+            borderRadius: '10px',
+            display: 'inline-block',
+            textAlign: 'left',
+            backgroundColor: '#f9f9f9',
+          }}
+        >
+          <h2 style={{ textTransform: 'capitalize' }}>{pokemonData.name}</h2>
+          <img
+            src={pokemonData.sprites.front_default}
+            alt={pokemonData.name}
+            style={{ width: '150px', height: '150px' }}
+          />
+          <p><strong>Type:</strong> {pokemonData.types.map((type) => type.type.name).join(', ')}</p>
+          <p><strong>Height:</strong> {pokemonData.height} decimetres</p>
+          <p><strong>Weight:</strong> {pokemonData.weight} hectograms</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Pogo;
